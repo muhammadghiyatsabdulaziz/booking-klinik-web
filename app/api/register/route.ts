@@ -1,28 +1,73 @@
-// app/api/register/route.js
+// app/api/register/route.ts
 import { neon } from '@neondatabase/serverless';
 import { NextResponse } from 'next/server';
-// Jika Anda melakukan hashing password, import library-nya di sini (misal: bcryptjs)
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    // 1. Ambil data yang dikirim dari form frontend
-    const { username, email, password } = await request.json();
+    const body = await request.json();
+    const { name, email, password, password_confirmation, phone, role } = body;
 
-    // 2. Koneksikan ke database Neon menggunakan Env Variable Vercel
-    const sql = neon(process.env.DATABASE_URL);
+    if (!name || !email || !password || !password_confirmation) {
+      return NextResponse.json(
+        { message: 'Semua kolom wajib diisi' },
+        { status: 400 }
+      );
+    }
 
-    // 3. Jalankan query database (Contoh: Insert data user baru)
-    // Sesuaikan nama kolom dan tabel dengan database klinik Anda
+    if (password !== password_confirmation) {
+      return NextResponse.json(
+        { message: 'Konfirmasi password tidak cocok' },
+        { status: 400 }
+      );
+    }
+
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL belum diatur');
+    }
+
+    const sql = neon(databaseUrl);
+
+    // Cek email terdaftar
+    const existingUser = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
+    if (existingUser.length > 0) {
+      return NextResponse.json(
+        { message: 'Email sudah terdaftar' },
+        { status: 400 }
+      );
+    }
+
+    // Jalankan query insert
     await sql`
-      INSERT INTO users (username, email, password) 
-      VALUES (${username}, ${email}, ${password})
+      INSERT INTO users (name, email, password, phone, role) 
+      VALUES (${name}, ${email}, ${password}, ${phone}, ${role})
     `;
 
-    // 4. Kirim respon sukses ke frontend
-    return NextResponse.json({ message: 'Registrasi berhasil!' }, { status: 201 });
+    // Buat data dummy user untuk dikembalikan ke frontend tanpa membaca object dynamic
+    const dummyUser = {
+      name: name,
+      email: email,
+      role: role || 'patient'
+    };
 
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Gagal melakukan registrasi' }, { status: 500 });
+    const dummyToken = 'dummy-jwt-token-serverless'; 
+
+    return NextResponse.json(
+      { 
+        message: 'Registrasi berhasil!',
+        user: dummyUser,
+        token: dummyToken
+      },
+      { status: 201 }
+    );
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error register:', errorMessage);
+    
+    return NextResponse.json(
+      { message: 'Gagal melakukan registrasi server', details: errorMessage },
+      { status: 500 }
+    );
   }
 }
