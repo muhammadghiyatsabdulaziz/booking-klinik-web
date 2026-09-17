@@ -8,14 +8,21 @@ const apiClient = axios.create({
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+    // WAJIB TAMBAHKAN BARIS INI:
+    return config; 
+  },
+  // WAJIB TAMBAHKAN PENANGANAN ERROR INI JUGA:
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export default apiClient;
