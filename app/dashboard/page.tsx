@@ -1,9 +1,11 @@
 'use client';
-import { Stethoscope, Search, Calendar, User, LogOut } from 'lucide-react';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Stethoscope, Search, Calendar, User, LogOut } from 'lucide-react';
+import apiClient from '@/lib/axios';
 
-interface User {
+interface UserData {
   id: number;
   name: string;
   email: string;
@@ -12,42 +14,58 @@ interface User {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // 1. Tambahkan state loading di sini
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const checkAuthAndFetchUser = async () => {
+      const token = localStorage.getItem('token');
 
-    // Cek apakah token atau data user kosong
-    if (!token || !userData || userData === 'undefined' || userData === 'null') {
-      localStorage.removeItem('token'); // Bersihkan sisa data rusak jika ada
-      localStorage.removeItem('user');
-      router.push('/login');
-      return;
-    }
+      // 1. Cek awal di browser, jika kosong langsung usir
+      if (!token) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/login');
+        return;
+      }
 
+      try {
+        // 2. Tembak rute /me untuk memverifikasi token aktif di database online
+        const response = await apiClient.get('/me');
+        
+        // Simpan data user segar terbaru dari database
+        setUser(response.data);
+        localStorage.setItem('user', JSON.stringify(response.data));
+        setLoading(false);
+      } catch (err) {
+        // 3. Jika token di DB hangus/401 Unauthorized, hapus data lokal dan usir
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/login');
+      }
+    };
+
+    checkAuthAndFetchUser();
+  }, [router]);
+
+  const handleLogout = async () => {
     try {
-      setUser(JSON.parse(userData));
-      setLoading(false); // 2. Jika sukses membaca data, matikan loading
-    } catch {
+      // Hancurkan token aktif di database Laravel Wasmer
+      await apiClient.post('/logout');
+    } catch (err) {
+      console.error("Gagal menghapus token di server, lanjut bersihkan lokal", err);
+    } finally {
+      // Apapun status respon backend, pastikan lokal dibersihkan total
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       router.push('/login');
     }
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
   };
 
-  // 3. Selama pengecekan token berlangsung, kunci layar dengan tampilan ini
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
-        <p className="text-[#134E4A]/60 text-sm animate-pulse">Memuat dashboard...</p>
+        <p className="text-[#134E4A]/60 text-sm animate-pulse">Memuat dashboard klinik...</p>
       </div>
     );
   }
@@ -62,8 +80,13 @@ export default function DashboardPage() {
           <span className="font-semibold text-[#134E4A]">Klinik Nirmala Cendekia</span>
         </div>
         <div className="flex items-center gap-4">
-          <a href="/profile" className="text-sm text-[#134E4A]/70 hover:text-[#0F766E] hidden sm:inline transition">{user.name}</a>
-          <button onClick={handleLogout} className="flex items-center gap-1.5 text-sm text-[#134E4A]/60 hover:text-red-600 transition">
+          <span className="text-sm text-[#134E4A]/70 hidden sm:inline transition">
+            {user.name} ({user.role})
+          </span>
+          <button 
+            onClick={handleLogout} 
+            className="flex items-center gap-1.5 text-sm text-[#134E4A]/60 hover:text-red-600 transition cursor-pointer"
+          >
             <LogOut size={15} />
             Keluar
           </button>
@@ -71,7 +94,7 @@ export default function DashboardPage() {
       </nav>
 
       <main className="p-6 max-w-2xl mx-auto">
-        <div className="bg-white border border-[#0F766E]/10 rounded-xl p-7">
+        <div className="bg-white border border-[#0F766E]/10 rounded-xl p-7 shadow-sm">
           <h2 className="font-display text-xl font-semibold text-[#134E4A] tracking-tight mb-1">Halo, {user.name} 👋</h2>
           <p className="text-sm text-[#134E4A]/60 mb-6">
             Cari dokter dan booking kunjungan, atau cek riwayat booking kamu.
