@@ -18,12 +18,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await apiClient.post('/login', { email, password });
-      alert('BERHASIL: ' + JSON.stringify(response.data));
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       router.push('/dashboard');
     } catch (err: any) {
-      alert('GAGAL: ' + JSON.stringify(err.response?.data) + ' | Status: ' + err.response?.status);
       setError(err.response?.data?.message || 'Login gagal, coba lagi');
     } finally {
       setLoading(false);
