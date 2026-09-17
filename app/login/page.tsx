@@ -18,10 +18,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await apiClient.post('/login', { email, password });
+      alert('BERHASIL: ' + JSON.stringify(response.data));
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       router.push('/dashboard');
     } catch (err: any) {
+      alert('GAGAL: ' + JSON.stringify(err.response?.data) + ' | Status: ' + err.response?.status);
       setError(err.response?.data?.message || 'Login gagal, coba lagi');
     } finally {
       setLoading(false);
@@ -39,53 +41,4 @@ export default function LoginPage() {
           <p className="text-sm text-[#134E4A]/60 mt-1">Masuk untuk kelola booking kunjungan kamu</p>
         </div>
 
-        <div className="bg-white border border-[#0F766E]/10 rounded-xl p-7 shadow-sm">
-          {error && (
-            <div className="bg-red-50 text-red-700 border border-red-100 px-3 py-2.5 rounded-lg mb-4 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#134E4A] mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F766E]/30 focus:border-[#0F766E]"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#134E4A] mb-1.5">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F766E]/30 focus:border-[#0F766E]"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#0F766E] text-white py-2.5 rounded-lg font-medium text-sm hover:bg-[#0d5f58] transition disabled:opacity-50"
-            >
-              {loading ? 'Masuk...' : 'Masuk'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-[#134E4A]/60 mt-5">
-            Belum punya akun?{' '}
-            <a href="/register" className="text-[#FB923C] font-medium hover:underline">
-              Daftar di sini
-            </a>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+        <div
