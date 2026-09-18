@@ -17,7 +17,8 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const response = await apiClient.post('/login', { email, password });
+     const response = await apiClient.post('/login/', { email, password });
+
       
       if (response.data.token) {
         // Simpan token string dan data user ke storage lokal browser
