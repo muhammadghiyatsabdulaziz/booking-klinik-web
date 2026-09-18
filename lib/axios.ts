@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  // URL ini membaca https://wasmer.app
+  baseURL: process.env.NEXT_PUBLIC_API_URL, 
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -16,9 +17,9 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
-    // MEMPERBAIKI BUG: Wajib mengembalikan config agar request tidak macet (stuck)
     return config;
   },
+  // WAJIB SERTAKAN BLOK ERROR INTERCEPTOR INI AGAR AXIOS TIDAK MACET
   (error) => {
     return Promise.reject(error);
   }
