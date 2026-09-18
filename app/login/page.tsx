@@ -17,19 +17,12 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-     const response = await apiClient.post('/login/', { email, password });
-
-      
-      if (response.data.token) {
-        // Simpan token string dan data user ke storage lokal browser
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Alihkan dengan aman ke rute dashboard
-        router.push('/dashboard');
-      }
+      const response = await apiClient.post('/login', { email, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login gagal, periksa email dan password kamu');
+      setError(err.response?.data?.message || 'Login gagal, coba lagi');
     } finally {
       setLoading(false);
     }
@@ -45,54 +38,48 @@ export default function LoginPage() {
           <h1 className="font-display text-2xl font-semibold text-[#134E4A] tracking-tight">Selamat datang kembali</h1>
           <p className="text-sm text-[#134E4A]/60 mt-1">Masuk untuk kelola booking kunjungan kamu</p>
         </div>
-
-        <form onSubmit={handleSubmit} className="bg-white border border-[#0F766E]/10 rounded-xl p-6 shadow-sm">
+        <div className="bg-white border border-[#0F766E]/10 rounded-xl p-7 shadow-sm">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 text-xs text-red-600 font-medium border border-red-100">
+            <div className="bg-red-50 text-red-700 border border-red-100 px-3 py-2.5 rounded-lg mb-4 text-sm">
               {error}
             </div>
           )}
-
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-xs font-medium text-[#134E4A] mb-1.5">Alamat Email</label>
+              <label className="block text-sm font-medium text-[#134E4A] mb-1.5">Email</label>
               <input
-                id="email"
-                name="email"
                 type="email"
-                autoComplete="username"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@email.com"
-                className="w-full px-3.5 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#0F766E] transition text-[#134E4A]"
+                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F766E]/30 focus:border-[#0F766E]"
+                required
               />
             </div>
-
             <div>
-              <label htmlFor="password" className="block text-xs font-medium text-[#134E4A] mb-1.5">Kata Sandi</label>
+              <label className="block text-sm font-medium text-[#134E4A] mb-1.5">Password</label>
               <input
-                id="password"
-                name="password"
                 type="password"
-                autoComplete="current-password"
-                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#0F766E] transition text-[#134E4A]"
+                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F766E]/30 focus:border-[#0F766E]"
+                required
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0F766E] hover:bg-[#0d5f58] text-white text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="w-full bg-[#0F766E] text-white py-2.5 rounded-lg font-medium text-sm hover:bg-[#0d5f58] transition disabled:opacity-50"
             >
-              {loading ? 'Memproses...' : 'Masuk Akun'}
+              {loading ? 'Masuk...' : 'Masuk'}
             </button>
-          </div>
-        </form>
+          </form>
+          <p className="text-center text-sm text-[#134E4A]/60 mt-5">
+            Belum punya akun?{' '}
+            <a href="/register" className="text-[#FB923C] font-medium hover:underline">
+              Daftar di sini
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
