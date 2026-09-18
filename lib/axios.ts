@@ -16,10 +16,9 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
-    // WAJIB TAMBAHKAN BARIS INI:
-    return config; 
+    // MEMPERBAIKI BUG: Wajib mengembalikan config agar request tidak macet (stuck)
+    return config;
   },
-  // WAJIB TAMBAHKAN PENANGANAN ERROR INI JUGA:
   (error) => {
     return Promise.reject(error);
   }
