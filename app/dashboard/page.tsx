@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Stethoscope, Search, Calendar, User, LogOut } from 'lucide-react';
-import apiClient from '@/lib/axios';
 
 interface UserData {
   id: number;
@@ -15,57 +14,33 @@ interface UserData {
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuthAndFetchUser = async () => {
-      const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
 
-      // 1. Cek awal di browser, jika kosong langsung usir
-      if (!token) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/login');
-        return;
-      }
+    if (!token || !userData || userData === 'undefined') {
+      router.push('/login');
+      return;
+    }
 
-      try {
-        // 2. Tembak rute /me untuk memverifikasi token aktif di database online
-        const response = await apiClient.get('/me');
-        
-        // Simpan data user segar terbaru dari database
-        setUser(response.data);
-        localStorage.setItem('user', JSON.stringify(response.data));
-        setLoading(false);
-      } catch (err) {
-        // 3. Jika token di DB hangus/401 Unauthorized, hapus data lokal dan usir
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/login');
-      }
-    };
-
-    checkAuthAndFetchUser();
-  }, [router]);
-
-  const handleLogout = async () => {
     try {
-      // Hancurkan token aktif di database Laravel Wasmer
-      await apiClient.post('/logout');
-    } catch (err) {
-      console.error("Gagal menghapus token di server, lanjut bersihkan lokal", err);
-    } finally {
-      // Apapun status respon backend, pastikan lokal dibersihkan total
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      setUser(JSON.parse(userData));
+    } catch {
       router.push('/login');
     }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
   };
 
-  if (loading || !user) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F0FDFA]">
-        <p className="text-[#134E4A]/60 text-sm animate-pulse">Memuat dashboard klinik...</p>
+        <p className="text-[#134E4A]/60 text-sm">Memuat...</p>
       </div>
     );
   }
@@ -80,13 +55,8 @@ export default function DashboardPage() {
           <span className="font-semibold text-[#134E4A]">Klinik Nirmala Cendekia</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-[#134E4A]/70 hidden sm:inline transition">
-            {user.name} ({user.role})
-          </span>
-          <button 
-            onClick={handleLogout} 
-            className="flex items-center gap-1.5 text-sm text-[#134E4A]/60 hover:text-red-600 transition cursor-pointer"
-          >
+          <span className="text-sm text-[#134E4A]/70 hidden sm:inline">{user.name}</span>
+          <button onClick={handleLogout} className="flex items-center gap-1.5 text-sm text-[#134E4A]/60 hover:text-red-600 transition">
             <LogOut size={15} />
             Keluar
           </button>
@@ -94,7 +64,7 @@ export default function DashboardPage() {
       </nav>
 
       <main className="p-6 max-w-2xl mx-auto">
-        <div className="bg-white border border-[#0F766E]/10 rounded-xl p-7 shadow-sm">
+        <div className="bg-white border border-[#0F766E]/10 rounded-xl p-7">
           <h2 className="font-display text-xl font-semibold text-[#134E4A] tracking-tight mb-1">Halo, {user.name} 👋</h2>
           <p className="text-sm text-[#134E4A]/60 mb-6">
             Cari dokter dan booking kunjungan, atau cek riwayat booking kamu.
