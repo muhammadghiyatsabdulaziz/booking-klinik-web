@@ -16,21 +16,26 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
+  const userData = localStorage.getItem('user');
 
-    if (!token || !userData || userData === 'undefined') {
-      router.push('/login');
-      return;
-    }
+  console.log('DASHBOARD CHECK - token:', token);
+  console.log('DASHBOARD CHECK - userData:', userData);
 
-    try {
-      setUser(JSON.parse(userData));
-    } catch {
-      router.push('/login');
-    }
-  }, [router]);
+  if (!token || !userData || userData === 'undefined') {
+    console.log('DASHBOARD - redirect karena token/userData kosong');
+    router.push('/login');
+    return;
+  }
 
+  try {
+    setUser(JSON.parse(userData));
+    console.log('DASHBOARD - berhasil set user');
+  } catch (e) {
+    console.log('DASHBOARD - gagal parse, error:', e);
+    router.push('/login');
+  }
+}, [router]);
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
