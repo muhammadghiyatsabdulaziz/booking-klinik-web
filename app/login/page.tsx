@@ -16,12 +16,32 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    
     try {
       const response = await apiClient.post('/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // 1. Log untuk mengintip struktur data asli dari API Laravel Anda
+      console.log('RESPONS DARI LARAVEL:', response.data);
+
+      // 2. Ambil token & user secara fleksibel (mengantisipasi jika dibungkus dalam objek 'data')
+      const token = response.data.token || response.data.data?.token;
+      const user = response.data.user || response.data.data?.user;
+
+      // 3. Validasi: Jangan biarkan pindah halaman jika data dari server kosong/undefined
+      if (!token || !user) {
+        setError('Format data dari server tidak sesuai (Token/User tidak ditemukan).');
+        console.error('Gagal Ekstraksi - Token:', token, 'User:', user);
+        return;
+      }
+
+      // 4. Jika data terbukti aman dan ada, simpan ke localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      // 5. Pindah ke halaman dashboard
       router.push('/dashboard');
     } catch (err: any) {
+      console.error('Error saat request login:', err);
       setError(err.response?.data?.message || 'Login gagal, coba lagi');
     } finally {
       setLoading(false);
