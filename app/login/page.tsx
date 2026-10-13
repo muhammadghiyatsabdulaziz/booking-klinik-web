@@ -25,8 +25,19 @@ export default function LoginPage() {
 
       // 2. Ambil token & user secara fleksibel (mengantisipasi jika dibungkus dalam objek 'data')
          // Kesesuaian untuk Sanctum / struktur objek bersarang
-         const token = response.data.access_token || response.data.data?.access_token || response.data.token;
-         const user = response.data.user || response.data.data?.user;
+        //  KODE BARU: Otomatis mendeteksi segala format nama variabel dari Laravel
+const token = 
+  response.data.token || 
+  response.data.access_token || 
+  response.data.data?.token || 
+  response.data.data?.access_token ||
+  response.data.authorisation?.token;
+
+const user = 
+  response.data.user || 
+  response.data.data?.user || 
+  response.data.profile || 
+  response.data.data?.profile;
 
 
       // 3. Validasi: Jangan biarkan pindah halaman jika data dari server kosong/undefined
