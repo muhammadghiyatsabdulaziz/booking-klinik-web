@@ -24,8 +24,10 @@ export default function LoginPage() {
       console.log('RESPONS DARI LARAVEL:', response.data);
 
       // 2. Ambil token & user secara fleksibel (mengantisipasi jika dibungkus dalam objek 'data')
-      const token = response.data.token || response.data.data?.token;
-      const user = response.data.user || response.data.data?.user;
+         // Kesesuaian untuk Sanctum / struktur objek bersarang
+         const token = response.data.access_token || response.data.data?.access_token || response.data.token;
+         const user = response.data.user || response.data.data?.user;
+
 
       // 3. Validasi: Jangan biarkan pindah halaman jika data dari server kosong/undefined
       if (!token || !user) {
